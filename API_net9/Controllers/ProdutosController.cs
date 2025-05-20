@@ -8,24 +8,24 @@ namespace API_net9.Controllers;
 [ApiController]
 public class ProdutosController : ControllerBase
 {
-    private readonly IProdutoRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public ProdutosController(IProdutoRepository repository) // fazendo a injeção de dependencia para acessar os dados do banco
+    public ProdutosController(IUnitOfWork unitOfWork) // fazendo a injeção de dependencia para acessar os dados do banco
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<Produto>> GetAll()
     {
-        var produtos = _repository.GetAllProdutos();
+        var produtos = _unitOfWork.ProdutoRepository.GetAllProdutos();
         return Ok(produtos);
     }
 
     [HttpGet("{id:int}", Name = "Obter produto")] // especifica que o valor tem que ser do tipo int
     public ActionResult<Produto> GetForId(int id)
     {
-        var produto = _repository.GetProdutoId(id);
+        var produto = _unitOfWork.ProdutoRepository.GetProdutoId(id);
         if(produto is null)
         {
             return NotFound();
@@ -44,7 +44,8 @@ public class ProdutosController : ControllerBase
             return BadRequest();
         }
 
-        _repository.Create(produto);
+        _unitOfWork.ProdutoRepository.Create(produto);
+        _unitOfWork.Commit();
 
         return new CreatedAtRouteResult("Obter produto", new { id = produto.ProdutoId }, produto);
     }
@@ -58,20 +59,21 @@ public class ProdutosController : ControllerBase
             return BadRequest();
         }
 
-        _repository.Update(produto);
-
+        _unitOfWork.ProdutoRepository.Update(produto);
+        _unitOfWork.Commit();
         return Ok(produto);
     }
 
     [HttpDelete("id:int")]
     public ActionResult Delete(int id)
     {
-        var produto = _repository.Delete(id);// localiza o produto no banco de dados
+        var produto = _unitOfWork.ProdutoRepository.Delete(id);// localiza o produto no banco de dados
         if(produto is null)
         {
             return NotFound();
         }
-        _repository.Delete(id);
+        _unitOfWork.ProdutoRepository.Delete(id);
+        _unitOfWork.Commit();
         return Ok(produto);
     }
 }

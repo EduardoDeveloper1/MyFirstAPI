@@ -12,10 +12,10 @@ namespace API_net9.Controllers;
 [ApiController]
 public class CategoriasController : ControllerBase
 {
-    private readonly ICategoriaRepository _repository;
-    public CategoriasController(ICategoriaRepository repository)
+    private readonly IUnitOfWork _unitOfWork;
+    public CategoriasController(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     //[HttpGet("produtos")]
@@ -27,14 +27,14 @@ public class CategoriasController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Categoria>> GetAll()
     {
-        var categorias = _repository.GetAllCategorias();
+        var categorias = _unitOfWork.CategoriaRepository.GetAllCategorias();
         return Ok(categorias);
     }
 
     [HttpGet("{id:int:min(1)}", Name = "Obter categoria")]
     public ActionResult<Categoria> GetForId(int id)
     {
-        var categoria = _repository.GetCategoriaId(id);
+        var categoria = _unitOfWork.CategoriaRepository.GetCategoriaId(id);
         return Ok(categoria);
     }
 
@@ -47,7 +47,8 @@ public class CategoriasController : ControllerBase
             return BadRequest();
         }
 
-        _repository.Create(categoria);// inclui no contexto
+        _unitOfWork.CategoriaRepository.Create(categoria);// inclui no contexto
+        _unitOfWork.Commit();
 
         return new CreatedAtRouteResult("Obter categoria", new { id = categoria.CategoriaId }, categoria);
     }
@@ -61,7 +62,8 @@ public class CategoriasController : ControllerBase
             return BadRequest();
         }
 
-        _repository.Update(categoria);
+        _unitOfWork.CategoriaRepository.Update(categoria);
+        _unitOfWork.Commit();
 
         return Ok(categoria);
     }
@@ -69,13 +71,14 @@ public class CategoriasController : ControllerBase
     [HttpDelete("{id:int}")]
     public ActionResult Delete(int id)
     {
-        var categoria = _repository.GetCategoriaId(id);// localiza o produto no banco de dados
+        var categoria = _unitOfWork.CategoriaRepository.GetCategoriaId(id);// localiza o produto no banco de dados
         if (categoria is null)
         {
             return NotFound();
         }
 
-        _repository.Delete(id);
+        _unitOfWork.CategoriaRepository.Delete(id);
+        _unitOfWork.Commit();
         return Ok(categoria);
     }
 }

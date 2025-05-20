@@ -33,7 +33,6 @@ public class CategoriaRepository : ICategoriaRepository
         }
 
         _context.Categorias.Add(categoria);// inclui no contexto
-        _context.SaveChanges();
 
         return categoria;
     }
@@ -45,7 +44,6 @@ public class CategoriaRepository : ICategoriaRepository
             throw new ArgumentNullException(nameof(categoria));
         }
         _context.Entry(categoria).State = EntityState.Modified;
-        _context.SaveChanges();
 
         return categoria;
     }
@@ -58,7 +56,6 @@ public class CategoriaRepository : ICategoriaRepository
             throw new ArgumentNullException(nameof(categoria));
         }
         _context.Remove(id);
-        _context.SaveChanges();
 
         return categoria;
 

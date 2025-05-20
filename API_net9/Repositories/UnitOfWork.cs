@@ -18,6 +18,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
+            //Verifica se a instancia existe e caso n, cria uma nova
             return _produtoRepository = _produtoRepository ?? new ProdutoRepository(_context);
         }
     }
@@ -26,12 +27,18 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
+            //Verifica se a instancia existe e caso n, cria uma nova
             return _categoriaRepository = _categoriaRepository ?? new CategoriaRepository(_context);
         }
     }
 
     public void Commit()
     {
-        throw new NotImplementedException();
+        _context.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

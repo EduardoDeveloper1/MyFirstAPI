@@ -1,10 +1,8 @@
-﻿using API_net9.Context;
+﻿using API_net9.DTOs;
+using API_net9.DTOs.Mappings;
 using API_net9.Models;
 using API_net9.Repositories;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API_net9.Controllers;
 
@@ -25,51 +23,76 @@ public class CategoriasController : ControllerBase
     //}
 
     [HttpGet]
-    public ActionResult<IEnumerable<Categoria>> GetAll()
+    public ActionResult<IEnumerable<CategoriaDTO>> GetAll()
     {
         var categorias = _unitOfWork.CategoriaRepository.GetAllCategorias();
-        return Ok(categorias);
+
+       if(categorias is null)
+        {
+            return NotFound();
+        }
+
+        var categoriaDTO = categorias.ToCategoriaDTOList();
+
+        return Ok(categoriaDTO);
     }
 
     [HttpGet("{id:int:min(1)}", Name = "Obter categoria")]
-    public ActionResult<Categoria> GetForId(int id)
+    public ActionResult<CategoriaDTO> GetForId(int id)
     {
         var categoria = _unitOfWork.CategoriaRepository.GetCategoriaId(id);
-        return Ok(categoria);
+
+        if(categoria is null)
+        {
+            return NotFound();
+        }
+
+        var categoriaDto = categoria.ToCategoriaDTO();
+
+        return Ok(categoriaDto); // Aqui retornamos o objeto corretamente
+
     }
 
     [HttpPost]
     //cria ou altera uma categoria existente
-    public ActionResult Post(Categoria categoria)
+    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDTO)
     {
-        if (categoria is null)
+        if (categoriaDTO is null)
         {
             return BadRequest();
         }
+
+        var categoria = categoriaDTO.ToCategoria();
 
         _unitOfWork.CategoriaRepository.Create(categoria);// inclui no contexto
         _unitOfWork.Commit();
 
-        return new CreatedAtRouteResult("Obter categoria", new { id = categoria.CategoriaId }, categoria);
+        var Novacategoria = categoria.ToCategoriaDTO();
+
+        return new CreatedAtRouteResult("Obter categoria", new { id = categoriaDTO.CategoriaId }, categoriaDTO);
     }
 
     [HttpPut("{id:int}")]
     // método para alterar um produto existente
-    public ActionResult Put(int id, Categoria categoria)
+    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDTO)
     {
-        if (id != categoria.CategoriaId)
+        if (id != categoriaDTO.CategoriaId)
         {
             return BadRequest();
         }
 
+        var categoria = categoriaDTO.ToCategoria();
+
         _unitOfWork.CategoriaRepository.Update(categoria);
         _unitOfWork.Commit();
 
-        return Ok(categoria);
+        var Novacategoria = categoria.ToCategoriaDTO();
+
+        return Ok(Novacategoria);
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult Delete(int id)
+    public ActionResult<CategoriaDTO> Delete(int id)
     {
         var categoria = _unitOfWork.CategoriaRepository.GetCategoriaId(id);// localiza o produto no banco de dados
         if (categoria is null)
@@ -79,6 +102,9 @@ public class CategoriasController : ControllerBase
 
         _unitOfWork.CategoriaRepository.Delete(id);
         _unitOfWork.Commit();
-        return Ok(categoria);
+
+        var Novacategoria = categoria.ToCategoriaDTO();
+
+        return Ok(Novacategoria);
     }
 }
